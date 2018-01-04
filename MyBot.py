@@ -9,6 +9,7 @@ itr = 0
 while True:
     game_map = game.update_map()
     command_queue = []
+    already_visited_planets = []
 
     team_ships = game_map.get_me().all_ships()
     # logging.info("numbers of ships found : ", len(team_ships), "for iteration : ", itr)
@@ -34,18 +35,20 @@ while True:
         # as long as there are planets to capture, let's capture them
         if len(closest_empty_planets) > 0:
             target_planet = closest_empty_planets[0]
-            if ship.can_dock(target_planet):
-                # logging.info("docking planet : ", target_planet)
-                command_queue.append(ship.dock(target_planet))
-            else:
-                navigate_command = ship.navigate(
-                    ship.closest_point_to(target_planet),
-                    game_map,
-                    speed=int(hlt.constants.MAX_SPEED),
-                    ignore_ships=False)
+            if target_planet not in already_visited_planets:
+                if ship.can_dock(target_planet):
+                    # logging.info("docking planet : ", target_planet)
+                    command_queue.append(ship.dock(target_planet))
+                    already_visited_planets.append(target_planet)
+                else:
+                    navigate_command = ship.navigate(
+                        ship.closest_point_to(target_planet),
+                        game_map,
+                        speed=int(hlt.constants.MAX_SPEED),
+                        ignore_ships=False)
 
-                if navigate_command:
-                    command_queue.append(navigate_command)
+                    if navigate_command:
+                        command_queue.append(navigate_command)
 
         # now, as there are no planets left, attack the ships
         elif len(closest_empty_ships) > 0:
